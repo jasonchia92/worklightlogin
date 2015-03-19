@@ -1,0 +1,113 @@
+<!DOCTYPE HTML><html>
+    <head>
+        <meta charset="UTF-8">
+        <title>facebookLogin</title>
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0" name="viewport">
+    		<!--
+    			<link rel="shortcut icon" href="images/favicon.png">
+    			<link rel="apple-touch-icon" href="images/apple-touch-icon.png"> 
+    		-->
+        <link href="worklight/worklight.css" rel="stylesheet">
+        <link href="css/main.css" rel="stylesheet">
+        <link href="ratchet.css" rel="stylesheet">
+        <link href="styles.css" rel="stylesheet">
+        <script>
+		// Define WL namespace.
+		var WL = WL ? WL : {};
+		/**
+		 * WLClient configuration variables.
+		 * Values are injected by the deployer that packs the gadget.
+		 */
+		 WL.StaticAppProps = {
+   "APP_DISPLAY_NAME": "facebookLogin",
+   "APP_ID": "facebookLogin",
+   "APP_SERVICES_URL": "\/apps\/services\/",
+   "APP_VERSION": "1.0",
+   "ENVIRONMENT": "android",
+   "LOGIN_DISPLAY_TYPE": "embedded",
+   "WORKLIGHT_NATIVE_VERSION": "1649575174",
+   "WORKLIGHT_PLATFORM_VERSION": "6.3.0.0",
+   "WORKLIGHT_ROOT_URL": "\/apps\/services\/api\/facebookLogin\/android\/"
+};
+</script>
+		<script src="worklight/cordova.js"></script>
+		<script src="worklight/wljq.js"></script>
+		<script src="worklight/worklight.js"></script>
+		<script src="worklight/checksum.js"></script>
+		<script>window.$ = window.jQuery = WLJQ;</script>
+    </head>
+    <body>
+        <button class="btn btn-block" onclick="login()">Login with Facebook</button>
+        <hr>
+        <button class="btn btn-block" onclick="getInfo()">Get My Info</button>
+        <p>Name: <span id="userName"></span>
+        </p>
+        <img id="userPic">
+		<hr>
+        <textarea id="Message" placeholder="What's on your mind?" rows="5"></textarea>
+		<button class="btn btn-block" onclick="share()">Share</button>
+        <hr>
+        <p>Complete Facebook Logout. After logging out, you'll have to login again and provide your Facebook credentials.</p>
+        <button class="btn btn-block" onclick="logout()">Logout</button>
+        <hr>
+        <p>Revoke App Permissions. After revoking permissions, you'll have to grant permissions again when logging in.</p>
+        <button class="btn btn-block" onclick="revoke()">Revoke Permissions</button>
+		<!--cordova.js is automatically injected by the Cordova build process-->
+		<script src="js/openfb.js"></script>
+		<script>
+		     // Defaults to sessionStorage for storing the Facebook token
+		     openFB.init({appId: '738882196225388'});
+		    //  Uncomment the line below to store the Facebook token in localStorage instead of sessionStorage
+		    //  openFB.init({appId: 'YOUR_FB_APP_ID', tokenStore: window.localStorage});
+		    function login() {
+		        openFB.login(
+		                function(response) {
+		                    if(response.status === 'connected') {
+		                        alert('Facebook login succeeded, got access token: ' + response.authResponse.token);
+		                    } else {
+		                        alert('Facebook login failed: ' + response.error);
+		                    }
+		                }, {scope: 'email,read_stream,publish_stream'});
+		    }
+		    function getInfo() {
+		        openFB.api({
+		            path: '/me',
+		            success: function(data) {
+		                console.log(JSON.stringify(data));
+		                document.getElementById("userName").innerHTML = data.name;
+		                document.getElementById("userPic").src = 'http://graph.facebook.com/' + data.id + '/picture?type=small';
+		            },
+		            error: errorHandler});
+		    }
+		    function share() {
+		        openFB.api({
+		            method: 'POST',
+		            path: '/me/feed',
+		            params: {
+		                message: document.getElementById('Message').value || 'Testing Facebook APIs'
+		            },
+		            success: function() {
+		                alert('the item was posted on Facebook');
+		            },
+		            error: errorHandler});
+		    }
+		    function revoke() {
+		        openFB.revokePermissions(
+		                function() {
+		                    alert('Permissions revoked');
+		                },
+		                errorHandler);
+		    }
+		    function logout() {
+		        openFB.logout(
+		                function() {
+		                    alert('Logout successful');
+		                },
+		                errorHandler);
+		    }
+		    function errorHandler(error) {
+		        alert(error.message);
+		    }
+		</script>
+    </body>
+</html>
